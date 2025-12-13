@@ -91,6 +91,10 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
 COPY config/ ${WORKSPACE}/config/
 COPY launch/ ${WORKSPACE}/launch/
 
+# Entrypoint to source ROS2 + workspace and launch the driver automatically.
+COPY ros_entrypoint.sh /usr/local/bin/ros_entrypoint.sh
+RUN chmod +x /usr/local/bin/ros_entrypoint.sh
+
 # Set library path
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 
@@ -107,5 +111,6 @@ EXPOSE 11811/tcp
 # Set working directory
 WORKDIR ${WORKSPACE}
 
-# Default command
-CMD ["/bin/bash"]
+# Default entrypoint (can be overridden by docker-compose `command:`).
+ENTRYPOINT ["/usr/local/bin/ros_entrypoint.sh"]
+
