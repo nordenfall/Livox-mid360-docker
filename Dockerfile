@@ -33,7 +33,7 @@ RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o 
 
 # Install ROS2 Humble Desktop (includes RViz2)
 RUN apt-get update && apt-get install -y \
-    ros-humble-desktop \
+    ros-humble-ros-base \
     ros-humble-pcl-ros \
     ros-humble-pcl-conversions \
     ros-humble-vision-opencv \
@@ -67,8 +67,8 @@ RUN mkdir -p ${WORKSPACE}/src
 WORKDIR ${WORKSPACE}/src
 RUN git clone https://github.com/Livox-SDK/livox_ros_driver2.git
 
-# Clone FAST-LIO ROS2 version
-RUN git clone --recursive https://github.com/Ericsii/FAST_LIO_ROS2.git FAST_LIO
+# # Clone FAST-LIO ROS2 version
+# RUN git clone --recursive https://github.com/Ericsii/FAST_LIO_ROS2.git FAST_LIO
 
 # Install FAST-LIO dependencies
 RUN apt-get update && apt-get install -y \
@@ -81,15 +81,19 @@ RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
     && cd ${WORKSPACE}/src/livox_ros_driver2 \
     && ./build.sh humble
 
-# Build FAST-LIO
-RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
-    && . ${WORKSPACE}/install/setup.sh \
-    && cd ${WORKSPACE} \
-    && colcon build --packages-select fast_lio --cmake-args -DCMAKE_BUILD_TYPE=Release
+# # Build FAST-LIO
+# RUN . /opt/ros/${ROS_DISTRO}/setup.sh \
+#     && . ${WORKSPACE}/install/setup.sh \
+#     && cd ${WORKSPACE} \
+#     && colcon build --packages-select fast_lio --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 # Copy configuration files
 COPY config/ ${WORKSPACE}/config/
 COPY launch/ ${WORKSPACE}/launch/
+
+# Entrypoint to source ROS2 + workspace and launch the driver automatically.
+COPY ros_entrypoint.sh /usr/local/bin/ros_entrypoint.sh
+RUN chmod +x /usr/local/bin/ros_entrypoint.sh
 
 # Set library path
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
@@ -107,5 +111,6 @@ EXPOSE 11811/tcp
 # Set working directory
 WORKDIR ${WORKSPACE}
 
-# Default command
-CMD ["/bin/bash"]
+# Default entrypoint (can be overridden by docker-compose `command:`).
+ENTRYPOINT ["/usr/local/bin/ros_entrypoint.sh"]
+

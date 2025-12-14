@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   livox_mid360:
     build:
@@ -10,6 +8,7 @@ services:
 
     # Use host network for LiDAR communication
     network_mode: host
+    ipc: host
 
     # Enable NVIDIA GPU support
     runtime: nvidia
@@ -19,18 +18,16 @@ services:
 
     # Environment variables
     environment:
-      - DISPLAY=${DISPLAY}
       - ROS_DOMAIN_ID=0
       - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
+      # Default launch behavior (override if you want RViz/recording/etc.)
+      - LAUNCH_FILE=/root/livox_ws/launch/livox_driver.launch.py
+      - LIVOX_CONFIG_FILE=/root/livox_ws/config/MID360_config.json
 
     # Volume mounts
     volumes:
-      # X11 for GUI applications (RViz2)
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ${HOME}/.Xauthority:/root/.Xauthority:rw
-
       # Share configuration files
       - ./config:/root/livox_ws/config:rw
       - ./launch:/root/livox_ws/launch:rw
@@ -41,19 +38,13 @@ services:
       # Device access
       - /dev:/dev:rw
 
-    # Device mappings
-    devices:
-      - /dev/video0:/dev/video0  # Optional: camera device
-
-    # Keep container running
-    stdin_open: true
-    tty: true
-
     # Restart policy
     restart: unless-stopped
 
-    # Command to run on start
-    command: /bin/bash
+    # Runs via image ENTRYPOINT (ros_entrypoint.sh). If you want a shell:
+    #   docker compose exec livox_mid360 bash
+    # or override with:
+    #   command: ["bash"]
 
 networks:
   default:

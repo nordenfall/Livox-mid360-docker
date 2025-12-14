@@ -196,7 +196,7 @@ This will:
 ### 3. Start the Container
 
 ```bash
-./run.sh
+docker compose up
 ```
 
 This will:
@@ -204,7 +204,13 @@ This will:
 - Verify network configuration
 - Start the Docker container
 
-### 4. Access the Container
+Run detached (recommended):
+
+```bash
+docker compose up -d
+```
+
+### 4. Access the Container / Shell
 
 ```bash
 docker exec -it livox_mid360_container bash
@@ -212,7 +218,13 @@ docker exec -it livox_mid360_container bash
 
 ### 5. Test LiDAR Connection
 
-Inside the container:
+By default, the container starts the basic driver automatically. To see logs:
+
+```bash
+docker compose logs -f livox_mid360
+```
+
+To launch manually inside the container:
 ```bash
 # Source ROS2 environment (already done in .bashrc, but just to be sure)
 source /opt/ros/humble/setup.bash
